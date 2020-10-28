@@ -16,7 +16,9 @@ let lastNumber = '';
 let lastBtn = '';
 let negativeSign = true;
 let percentageSign = true;
-let digits = new RegExp(/-*\d*(\.?)\d+$/);
+let negLastNum = new RegExp(/-{1}\d*(\.?)\d+$/); //breaks subtracting functionality including last # in regex
+// let digits = new RegExp(/\d*(\.?)\d+$/); //need to retweak flipping nums
+let digits = new RegExp(/-*\d*(\.?)\d+$/); //original digits
 let operatorsReg = new RegExp(/[+*/-]/gi);
 // console.log(buttons);
 
@@ -70,12 +72,12 @@ function manageNumber() {
     // lastNumber += value;
 
     //!must add input since match returns an object
-    display.innerText += `${value}`;
+    display.textContent += value;
     // displayExpression.innerText += value;
     mathExpression += dataValue;
   } else {
     // lastNumber = value;
-    display.innerText += `${value}`;
+    display.textContent += value;
     // displayExpression.innerText = value;
     mathExpression += dataValue;
   }
@@ -105,18 +107,21 @@ function manageOperator(event) {
   //todo: Flawed. Need to fix. 6 + 99 del + x renders an error.  Need to eval action based upon last char in textcontent (see regex matching above in delete fxn for help how)
   if (
     (lastBtn && lastBtn.classList.contains('operator')) ||
-    (lastBtn && lastBtn.classList.contains('delete'))
+    (lastBtn &&
+      lastBtn.classList.contains('delete') &&
+      !display.textContent.match(digits))
   ) {
-    mathExpression = mathExpression.substring(0, mathExpression.length - 3);
+    mathExpression = mathExpression.substring(0, mathExpression.length - 2);
     display.textContent = display.textContent.substring(
       0,
-      display.textContent.length - 3
+      display.textContent.length - 2
     );
   }
-  mathExpression += ` ${this.dataset.value} `; //spaces around operands
+  mathExpression += ' ' + this.dataset.value + ' '; //spaces around operands
   display.textContent += ` ${this.textContent} `; //? why won't this put the spaces?
   currentOperator = this.dataset.value;
-  // lastBtn && lastBtn.classList.contains('flip-sign')
+
+  // // lastBtn && lastBtn.classList.contains('flip-sign')
   //   ? negativeSign == true
   //   : negativeSign == false;
 
@@ -172,7 +177,9 @@ function percent() {
 //@! clicking the equals button
 function evaluate(event) {
   if (lastBtn == this) {
-    mathExpression = `${parse(mathExpression)}${currentOperator}${lastNumber}`;
+    mathExpression = `${parse(
+      mathExpression
+    )} ${currentOperator} ${lastNumber}`;
   }
   display.textContent = parse(mathExpression);
   negativeSign = true;
@@ -200,7 +207,31 @@ function checkfortooLong() {
   }
 }
 
+//@? I used this version when I wasn't defining last num with neg in it.  The problem is the regex is matching the minus sign.
 function invertNumbers() {
+  if (display.textContent.match(negLastNum)) {
+    let index = display.textContent.lastIndexOf(lastNumber);
+    let newNum = lastNumber.replace(`${lastNumber}`, `${Math.abs(lastNumber)}`);
+    display.textContent = display.textContent
+      .substring(0, index)
+      .concat(newNum);
+    mathExpression = mathExpression.substring(0, index).concat(newNum);
+    lastNumber = newNum;
+  } else if (!display.textContent.match(negLastNum)) {
+    let index = display.textContent.lastIndexOf(lastNumber);
+    let newNum = lastNumber.replace(lastNumber, `-${lastNumber}`);
+    display.textContent = display.textContent
+      .substring(0, index)
+      .concat(newNum);
+    // mathExpression = mathExpression.replace(lastNumber, newNum);
+    mathExpression = mathExpression.substring(0, index).concat(newNum);
+    lastNumber = newNum;
+    negativeSign = !negativeSign;
+  }
+}
+
+//@? Used this version when I was defiing last number w/ the negative in it.
+/* function invertNumbers() {
   console.log('flipping num');
   if (negativeSign) {
     let index = display.textContent.lastIndexOf(lastNumber);
@@ -232,7 +263,7 @@ function invertNumbers() {
     lastNumber = positiveLastNum;
     negativeSign = !negativeSign;
   }
-}
+} */
 
 //@# ===============  inverse sign  =============
 function flipSign() {
@@ -260,6 +291,11 @@ function flipSign() {
 
   //@% handling this (+/-) as last inverse button
   if (lastBtn == this) {
+    invertNumbers();
+  }
+
+  /* 
+    
     console.log('last btn this');
     // negativeSign = false;
     if (display.textContent.match(digits)) {
@@ -290,9 +326,9 @@ function flipSign() {
         lastNumber = lastNumber.slice(1);
         negativeSign = !negativeSign;
         return;
-      }
-    }
-    if (negativeSign) {
+      } */
+
+  /*   if (negativeSign) {
       display.textContent += '-';
       mathExpression += '-';
       negativeSign = !negativeSign;
@@ -300,21 +336,21 @@ function flipSign() {
       display.textContent = display.textContent.replace('-', '');
       mathExpresion = mathExpression.replace('-', '');
       negativeSign = !negativeSign;
-    }
-  }
+    } */
 
+  //@% handling equal inverse
   if (lastBtn && lastBtn.classList.contains('equal-btn')) {
-    if (negativeSign) {
+    if (parse(mathExpression) < 0) {
+      display.textContent = display.textContent.substring(1);
+    } else {
       display.textContent = display.textContent.replace(
         `${display.textContent}`,
         `-${display.textContent}`
       );
-      mathExpression = `${parse(mathExpression)}`;
-      negativeSign = !negativeSign;
-      lastNumber = display.textContent;
     }
-
-    //End of inverse button handling
+    mathExpression = `${parse(mathExpression)}`;
+    // negativeSign = !negativeSign;
+    lastNumber = display.textContent;
   }
 
   //@$ if the last button was delete:
@@ -327,6 +363,11 @@ function flipSign() {
     }
   }
 
+  if (lastBtn && lastBtn.classList.contains('percentage')) {
+    invertNumbers();
+  }
+
+  //End of inverse button handling
   lastBtn = this;
 }
 
