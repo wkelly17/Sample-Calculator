@@ -1,3 +1,5 @@
+//From Bryce on October 30, 2020 - for calculator - data dash over classlist, can write to data dash if needed, and reduce event listeners to one master logic flow handing out little functions.  also, instead of classlist contains, maybe data.name = or data.role = 'xyz'
+
 const buttons = document.querySelectorAll('.button');
 const numbers = document.querySelectorAll('.number');
 const operators = document.querySelectorAll('.operator');
