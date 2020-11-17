@@ -7,35 +7,35 @@
     <link rel="stylesheet" href="./CSS/styles.css" />
   </head>
   <body>
-    <div class="calculator">
-      <div class="display"><span class="value">0</span></div>
-      <!-- <div class='current-expression'><span class = 'current-expression'>place</span></div> -->
-      <button class="button functionBtn clear">C</button>
-      <button class="button functionBtn delete">del</button>
-      <button class="button functionBtn flip-sign">+/-</button>
-      <button class="button functionBtn percentage">%</button>
-      <button class="button number" data-value="7">7</button>
-      <button class="button number" data-value="8">8</button>
-      <button class="button number" data-value="9">9</button>
-      <button class="button operator" data-value="*">x</button>
-      <button class="button number" data-value="4">4</button>
-      <button class="button number" data-value="5">5</button>
-      <button class="button number" data-value="6">6</button>
-      <button class="button operator" data-value="/">/</button>
-      <button class="button number" data-value="1">1</button>
-      <button class="button number" data-value="2">2</button>
-      <button class="button number" data-value="3">3</button>
-      <button class="button operator" data-value="+">+</button>
-      <button class="button number zero" data-value="0">0</button>
-      <button class="button number dot" data-value=".">.</button>
-      <button class="button equal-btn" data-value="=">=</button>
-      <button class="button operator" data-value="-">-</button>
-    </div>
+    <pre> <!-- ! Important:  I have pre here since prettier formatter will add spaces, AND the js for this project depends upon using the display content without too much spaces -->
+      <div class="calculator">
+        <div class="display"><span class="value">0</span></div>
+        <button class="button functionBtn clear" data-role="clear">C</button>
+        <button class="button functionBtn delete" data-role="delete">del</button>
+        <button class="button functionBtn flip-sign" data-role="inverse">+/-</button>
+        <button class="button functionBtn percentage" data-role="percentage">%</button>
+        <button class="button number" data-role="number" data-value="7">7</button>
+        <button class="button number" data-role="number" data-value="8">8</button>
+        <button class="button number" data-role="number" data-value="9">9</button>
+        <button class="button operator" data-role="operator" data-value="*">x</button>
+        <button class="button number" data-role="number" data-value="4">4</button>
+        <button class="button number" data-role="number" data-value="5">5</button>
+        <button class="button number" data-role="number" data-value="6">6</button>
+        <button class="button operator" data-role="operator" data-value="/">/</button>
+        <button class="button number" data-role="number" data-value="1">1</button>
+        <button class="button number" data-role="number" data-value="2">2</button>
+        <button class="button number" data-role="number" data-value="3">3</button>
+        <button class="button operator" data-role="operator" data-value="+">+</button>
+        <button class="button number zero" data-role="number" data-value="0">0</button>
+        <button class="button number dot" data-role="number" data-value=".">.</button>
+        <button class="button equal-btn" data-role="parse" data-value="=">=</button>
+        <button class="button operator" data-role="operator" data-value="-">-</button>
+      </div>
+    </pre>
   </body>
 
   <script src="./app.js"></script>
 </html>
-
 
 <!-- /* 
 Temp converter V2: A simple program that takes in a temperature in either Celsius or Fahrenheit and returns the temperature in the opposite

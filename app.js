@@ -1,4 +1,4 @@
-//From Bryce on October 30, 2020 - for calculator - data dash over classlist, can write to data dash if needed, and reduce event listeners to one master logic flow handing out little functions.  also, instead of classlist contains, maybe data.name = or data.role = 'xyz'
+//?? was going to try to reduce event listeners to one master logic flow handing out little functions, BUT I'm not sure if I can refactor that easily since my current functions depend so heavily on the this value of the element calling them.
 
 const buttons = document.querySelectorAll('.button');
 const numbers = document.querySelectorAll('.number');
@@ -19,11 +19,33 @@ let lastBtn = '';
 let negativeSign = true;
 let percentageSign = true;
 let negLastNum = new RegExp(/-{1}\d*(\.?)\d+$/); //breaks subtracting functionality including last # in regex
-// let digits = new RegExp(/\d*(\.?)\d+$/); //need to retweak flipping nums
 let digits = new RegExp(/-*\d*(\.?)\d*$/); //matches possible numbers with neg and decimals
 let operatorsReg = new RegExp(/[+*/-]/gi);
-let endsWithOperator = new RegExp(/[+*/-]\s*$/); //white space at end due to keeping spacing in mathexpression
+let endsWithOperator = new RegExp(/[+*/-]\s*$/); //white space at end due to keeping spacing around operands;
 
+//! I was going to pass everything through a single event handler, BUT my functions are written to depend on the this value, and it doesn't seem that this passes through the call to next function being called here;
+function handleButton(event) {
+  switch (this.dataset.role) {
+    case 'number':
+      return manageNumber.apply(event.target);
+    case 'operator':
+      return manageOperator.apply(event.target);
+    case 'clear':
+      return clear.apply(event.target);
+    case 'delete':
+      return deleteOne.apply(event.target);
+    case 'inverse':
+      return flipSign.apply(event.target);
+    case 'parse':
+      return evaluate.apply(event.target);
+    case 'percentage':
+      return percent.apply(event.target);
+    default:
+      break;
+  }
+}
+
+//@# =============== CLEAR FXN  =============
 function clear() {
   display.textContent = '';
   mathExpression = '';
@@ -36,20 +58,29 @@ function clear() {
 //@# ===============  DELETE ONE FXN  =============
 function deleteOne() {
   //Make del act like Clear if last button was equals
-  if (lastBtn && lastBtn.classList.contains('equal-btn')) {
+  if (lastBtn && lastBtn.dataset.role == 'parse') {
     return clear();
   }
 
-  //For operators or numbers, delete last and update text and expression
-  //todo: there is some wonkiness in here with the spacing for operators.  REally need to split this logic into slicing out numbers vs. slicing operators out.
-  display.textContent = display.textContent.slice(
-    0,
-    display.textContent.length - 1
-  );
-  mathExpression = mathExpression.slice(0, mathExpression.length - 1);
+  //@@ SLICE 3 FOR OPERATORS SINCE OPERATORS HAVE SPACES AROUND THEM
+  if (lastBtn && lastBtn.dataset.role == 'operator') {
+    display.textContent = display.textContent.slice(
+      0,
+      display.textContent.length - 3
+    );
+    mathExpression = mathExpression.slice(0, mathExpression.length - 3);
+  }
+  //@@ delete just one for numbers
+  else if (lastBtn) {
+    display.textContent = display.textContent.slice(
+      0,
+      display.textContent.length - 1
+    );
+    mathExpression = mathExpression.slice(0, mathExpression.length - 1);
+  }
 
-  //updating last number based on whether operaand is at end
-  if (lastBtn && lastBtn.classList.contains('number')) {
+  //updating last number based on whether operand is at end
+  if (lastBtn && lastBtn.dataset.role == 'number') {
     if (display.textContent.match(endsWithOperator)) {
       lastNumber = display.textContent.match(/\d*(\.?)\d+/)[0];
     } else lastNumber = display.textContent.match(digits)[0];
@@ -68,14 +99,14 @@ function manageNumber() {
   }
 
   //clear if last button was equal (i.e start over)
-  if (lastBtn && lastBtn.classList.contains('equal-btn')) {
+  if (lastBtn && lastBtn.dataset.role == 'parse') {
     clear();
   }
   display.textContent += value;
   mathExpression += dataValue;
   lastNumber = display.textContent.match(digits)[0]; //matching to end of last numbers
 
-  lastBtn && lastBtn.classList.contains('flip-sign')
+  lastBtn && lastBtn.dataset.role == 'inverse'
     ? negativeSign == false
     : negativeSign == true;
   lastBtn = this;
@@ -85,26 +116,26 @@ function manageNumber() {
 //@# ===============  MANAGE Operator  =============
 
 function manageOperator() {
-  //can't push and operator button first
+  //can't push an operator button first
   if (!lastBtn || display.textContent.length == 0) {
     return;
   }
 
-  if (lastBtn.classList.contains('flip-sign') && !mathExpression.match(/\d$/)) {
+  if (lastBtn.dataset.role == 'inverse' && !mathExpression.match(/\d$/)) {
     return; //don't want to do anything if negative was previous.
   }
   //replace previous operator
   if (mathExpression.match(endsWithOperator)) {
-    mathExpression = mathExpression.substring(0, mathExpression.length - 2);
+    mathExpression = mathExpression.substring(0, mathExpression.length - 3);
     display.textContent = display.textContent.substring(
       0,
-      display.textContent.length - 2
+      display.textContent.length - 3
     );
   }
 
-  //@% Main 3 things to do when operan is pushed everytime
+  //@% Main 3 things to do when operand is pushed everytime
   mathExpression += ' ' + this.dataset.value + ' '; //spaces around operands
-  display.textContent += ` ${this.textContent} `; //? why won't this put the spaces?
+  display.textContent += ` ${this.textContent} `;
   currentOperator = this.dataset.value;
 
   negativeSign = true;
@@ -116,7 +147,7 @@ function manageOperator() {
 function percent() {
   //todo: this is a bit broken.  If you already have a decimal or are taking percents beyond .00 place, then it doesn't work right.  The replace function is limited to those places.
 
-  if (lastBtn && lastBtn.classList.contains('number')) {
+  if (lastBtn && lastBtn.dataset.role == 'number') {
     let percentNumber = String(lastNumber * 0.01);
     display.textContent = display.textContent.replace(
       lastNumber,
@@ -127,7 +158,7 @@ function percent() {
     percentageSign = false;
   }
 
-  if (lastBtn && lastBtn.classList.contains('equal-btn')) {
+  if (lastBtn && lastBtn.dataset.role == 'parse') {
     display.textContent = parse(display.textContent * 0.01);
     mathExpression = parse(mathExpression) * 0.01;
   }
@@ -160,7 +191,7 @@ function percent() {
 
 //@# ===============  MANAGE EQUALS BUTTON  =============
 //@! clicking the equals button
-function evaluate(event) {
+function evaluate() {
   if (lastBtn == this) {
     mathExpression = `${parse(
       mathExpression
@@ -224,7 +255,7 @@ function flipSign() {
   }
 
   //@% managing operators
-  if (lastBtn && lastBtn.classList.contains('operator')) {
+  if (lastBtn && lastBtn.dataset.role == 'operator') {
     if (negativeSign) {
       display.textContent += '-';
       mathExpression += '-';
@@ -236,7 +267,7 @@ function flipSign() {
   }
 
   //handling numbers
-  if (lastBtn && lastBtn.classList.contains('number')) {
+  if (lastBtn && lastBtn.dataset.role == 'number') {
     invertNumbers();
   }
 
@@ -259,7 +290,7 @@ function flipSign() {
   }
 
   //@% handling equal inverse
-  if (lastBtn && lastBtn.classList.contains('equal-btn')) {
+  if (lastBtn && lastBtn.dataset.role == 'parse') {
     if (parse(mathExpression) < 0) {
       display.textContent = display.textContent.substring(1);
     } else {
@@ -269,12 +300,11 @@ function flipSign() {
       );
     }
     mathExpression = `${parse(mathExpression)}`;
-    // negativeSign = !negativeSign;
     lastNumber = display.textContent;
   }
 
   //@$ if the last button was delete:
-  if (lastBtn && lastBtn.classList.contains('delete')) {
+  if (lastBtn && lastBtn.dataset.role == 'delete') {
     if (display.textContent.match(/[+*/-]$/i)) {
       display.textContent += '-';
       mathExpression += '-';
@@ -283,7 +313,7 @@ function flipSign() {
     }
   }
 
-  if (lastBtn && lastBtn.classList.contains('percentage')) {
+  if (lastBtn && lastBtn.dataset.role == 'percentage') {
     invertNumbers();
   }
 
@@ -292,12 +322,5 @@ function flipSign() {
 }
 
 //@# ===============  Event Listeners  =============   */
-numbers.forEach((button) => button.addEventListener('click', manageNumber));
-operators.forEach((operator) =>
-  operator.addEventListener('click', manageOperator)
-);
-clearBtn.addEventListener('click', clear);
-deleteBtn.addEventListener('click', deleteOne);
-equalBtn.addEventListener('click', evaluate);
-percentBtn.addEventListener('click', percent);
-negativeBtn.addEventListener('click', flipSign);
+
+buttons.forEach((operator) => operator.addEventListener('click', handleButton));

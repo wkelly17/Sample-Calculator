@@ -54,6 +54,7 @@ body {
   border: solid 1px #222;
   border-radius: 10px;
   font-family: Arial, Helvetica, sans-serif;
+  box-shadow: 3px 3px 2px 2px gray;
 }
 
 .button {
@@ -71,10 +72,14 @@ body {
   text-align: center;
   font-size: 1rem;
 }
+
 .button:hover,
 .button:focus {
   filter: brightness(1.2);
   outline: none;
+}
+.button:active {
+  transform: scale(0.97);
 }
 
 .operator:focus {
@@ -86,8 +91,8 @@ body {
   height: 100%;
   width: 100%;
   background: #666;
+  background: black;
   padding-right: 0.75rem;
-  /* padding-bottom: 1rem; */
   grid-column: 1/-1;
   grid-row: span 2; /* due to deleting 2nd display */
   order: 0;
@@ -114,20 +119,12 @@ body {
 .operator,
 .equal-btn {
   background-color: orange;
-  font-size: 0.75rem;
 }
 .functionBtn {
   background-color: #ccc;
   color: #333;
 }
 
-/* .zero {
-  grid-column: span 2;
-  width: initial;
-  border-radius: 35px;
-  text-align: left;
-} */
-
 .value {
-  font-size: 1rem;
+  font-size: 1.125rem;
 }
