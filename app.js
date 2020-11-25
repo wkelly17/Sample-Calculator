@@ -97,6 +97,9 @@ function manageNumber() {
   if (!lastBtn) {
     display.innerText = '';
   }
+  if (!lastBtn && value == 0) {
+    return;
+  }
 
   //clear if last button was equal (i.e start over)
   if (lastBtn && lastBtn.dataset.role == 'parse') {
